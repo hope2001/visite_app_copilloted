@@ -1,0 +1,30 @@
+name: vmp
+
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      VMP_ENVIRONMENT: production
+      VMP_JWT_SECRET_KEY: ${VMP_JWT_SECRET_KEY:?Set VMP_JWT_SECRET_KEY (at least 32 characters) in .env}
+      VMP_SITE_TIMEZONE: ${VMP_SITE_TIMEZONE:-Europe/Paris}
+      VMP_ACCESS_TOKEN_EXPIRE_MINUTES: ${VMP_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      VMP_LOG_LEVEL: ${VMP_LOG_LEVEL:-INFO}
+      # Leave empty in real deployments to skip demo data.
+      VMP_SEED_PASSWORD: ${VMP_SEED_PASSWORD:-}
+    volumes:
+      - vmp-data:/app/data
+    expose:
+      - "8000"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+volumes:
+  vmp-data:
